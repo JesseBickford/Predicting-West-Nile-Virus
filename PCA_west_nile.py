@@ -16,6 +16,8 @@ spray_merged = pd.read_csv('spray_0.75_merged.csv')
 
 spray_merged.info()
 
+
+
 #Adding a variable to describe count of sprays for a trap area. Two usually means
 #it was sprayed once per year.
 spray_merged['spray_ind'] = 0
@@ -31,11 +33,11 @@ spray_merged['spray_ind'] = spray_list
 spray_merged.Year.unique()
 
 #Okay, let's first scale the weather data.
-scale_cols = ['AvgSpeed', 'Cool', 'Depart', 'Depth', 'DewPoint', 'Heat', 'ResultDir',
-       'ResultSpeed', 'SeaLevel', 'Station', 'StnPressure', 'Sunrise',
+scale_cols = ['AvgSpeed', 'Cool', 'Depart', 'DewPoint', 'Heat', 'ResultDir',
+       'ResultSpeed', 'SeaLevel', 'StnPressure', 'Sunrise',
        'Sunset', 'Tavg', 'Tmax', 'Tmin', 'WetBulb']
-scale_cols2 = ['NumMosquitos', 'AvgSpeed', 'Cool', 'Depart', 'Depth', 'DewPoint', 'Heat', 'ResultDir',
-       'ResultSpeed', 'SeaLevel', 'Station', 'StnPressure', 'Sunrise',
+scale_cols2 = ['NumMosquitos', 'AvgSpeed', 'Cool', 'Depart', 'DewPoint', 'Heat', 'ResultDir',
+       'ResultSpeed', 'SeaLevel', 'StnPressure', 'Sunrise',
        'Sunset', 'Tavg', 'Tmax', 'Tmin', 'WetBulb']
 
 
@@ -108,7 +110,7 @@ print "There are %i eigenvalues." % len(eigenpairs.eigenvalue)
 #Plotting Explained Variance
 plt.figure(figsize=(9,7))
 
-component_number = range(1,37)
+component_number = range(1,35)
 
 plt.plot(component_number, cum_exp_var, lw=7)
 
@@ -118,7 +120,7 @@ plt.axhline(y=95, linewidth = 3, color = 'green', ls = 'dashed')
 plt.axhline(y=90, linewidth = 3, color = 'purple', ls = 'dashed')
 
 ax = plt.gca()
-ax.set_xlim([1,36])
+ax.set_xlim([1,34])
 ax.set_ylim([-5,105])
 
 ax.set_ylabel('cumulative variance explained', fontsize=16)
@@ -170,8 +172,8 @@ cols_drop = ['Latitude', 'Longitude', 'AddressAccuracy', 'spray_2011-08-29',
        'Species_CULEX PIPIENS', 'Species_CULEX PIPIENS/RESTUANS',
        'Species_CULEX RESTUANS', 'Species_CULEX SALINARIUS',
        'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS', 'AvgSpeed',
-       'Cool', 'Depart', 'Depth', 'DewPoint', 'Heat', 'ResultDir',
-       'ResultSpeed', 'SeaLevel', 'Station', 'StnPressure', 'Sunrise',
+       'Cool', 'Depart', 'DewPoint', 'Heat', 'ResultDir',
+       'ResultSpeed', 'SeaLevel', 'StnPressure', 'Sunrise',
        'Sunset', 'Tavg', 'Tmax', 'Tmin', 'WetBulb']
 
 corr_prin_comps.drop(cols_drop, axis = 1, inplace = True)
