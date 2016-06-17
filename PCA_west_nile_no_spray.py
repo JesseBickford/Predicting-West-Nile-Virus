@@ -52,10 +52,7 @@ non_scale = ['Date', 'Address', 'Block', 'Street', 'Trap',
        'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS']
 
 non_scale_use = ['Latitude', 'Longitude',
-       'AddressAccuracy', 'spray_2011-08-29',
-       'spray_2011-09-07', 'spray_2013-07-17', 'spray_2013-07-25',
-       'spray_2013-08-08', 'spray_2013-08-15', 'spray_2013-08-22',
-       'spray_2013-08-29', 'spray_2013-09-05', 'Species_CULEX ERRATICUS',
+       'AddressAccuracy', 'Species_CULEX ERRATICUS',
        'Species_CULEX PIPIENS', 'Species_CULEX PIPIENS/RESTUANS',
        'Species_CULEX RESTUANS', 'Species_CULEX SALINARIUS',
        'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS']
@@ -110,7 +107,7 @@ print "There are %i eigenvalues." % len(eigenpairs.eigenvalue)
 #Plotting Explained Variance
 plt.figure(figsize=(9,7))
 
-component_number = range(1,35)
+component_number = range(1,26)
 
 plt.plot(component_number, cum_exp_var, lw=7)
 
@@ -120,7 +117,7 @@ plt.axhline(y=95, linewidth = 3, color = 'green', ls = 'dashed')
 plt.axhline(y=90, linewidth = 3, color = 'purple', ls = 'dashed')
 
 ax = plt.gca()
-ax.set_xlim([1,34])
+ax.set_xlim([1,25])
 ax.set_ylim([-5,105])
 
 ax.set_ylabel('cumulative variance explained', fontsize=16)
@@ -155,9 +152,13 @@ prin_comps
 
 #Merging with wnv target...
 
-wnv_PCs = pd.merge(spray_merged[['WnvPresent', 'NumMosquitos','Trap']], prin_comps, left_index = True, right_index = True)
+wnv_PCs = pd.merge(spray_merged[['Date', 'Trap', 'NumMosquitos','WnvPresent']], prin_comps, left_index = True, right_index = True)
 
 wnv_PCs.info()
+
+#Saving PCs from train data without spray columns as csv.
+
+wnv_PCs.to_csv('train_PCA_nospraycolumns.csv', sep = ',', index = True, index_label = 'Index')
 
 #Now let's see how our eight PCs related back to our original features...
 
@@ -165,10 +166,7 @@ prin_comps_features = pd.merge(prin_comps, X_merged_no_nm, left_index = True, ri
 
 corr_prin_comps = prin_comps_features.corr().drop(['PC1', 'PC2', 'PC3', 'PC4', 'PC5', 'PC6', 'PC7', 'PC8'], axis = 0)
 
-cols_drop = ['Latitude', 'Longitude', 'AddressAccuracy', 'spray_2011-08-29',
-       'spray_2011-09-07', 'spray_2013-07-17', 'spray_2013-07-25',
-       'spray_2013-08-08', 'spray_2013-08-15', 'spray_2013-08-22',
-       'spray_2013-08-29', 'spray_2013-09-05', 'Species_CULEX ERRATICUS',
+cols_drop = ['Latitude', 'Longitude', 'AddressAccuracy', 'Species_CULEX ERRATICUS',
        'Species_CULEX PIPIENS', 'Species_CULEX PIPIENS/RESTUANS',
        'Species_CULEX RESTUANS', 'Species_CULEX SALINARIUS',
        'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS', 'AvgSpeed',
@@ -342,6 +340,8 @@ dt = DecisionTreeClassifier()
 evaluate_model(dt)
 all_models['dt'] = {'model': dt,
                     'score': evaluate_model(dt)[0]}
+all_models_roc['dt'] = {'model': dt,
+                    'score': evaluate_model(dt)[1]}
 params = {'criterion': ['gini', 'entropy'],
           'splitter': ['best', 'random'],
           'max_depth': [None, 5, 10],
@@ -565,3 +565,35 @@ non_scale_use_test = ['Latitude', 'Longitude',
 
 '''Merge the scaled data and ind vars...keeping num mosquitos out of this...'''
 test_merged_no_nm = pd.merge(test_weather_dummies[non_scale_use_test], test_scaled, left_index = True, right_index = True)
+test_merged_no_nm.info()
+
+'''Apply the PCA to test data to get PCs.'''
+
+test_PCs = wnv_pca.fit_transform(test_merged_no_nm)
+
+test_PCs
+
+test_baggingknn_predict = baggingknn.predict(test_PCs)
+
+test_dt_predict = dt.predict(test_PCs)
+
+sum(test_baggingknn_predict)
+
+sum(test_dt_predict)
+
+#DF for submission.
+submission_baggingknn = pd.DataFrame(test_baggingknn_predict, columns = ['WnvPresent'], index = test_weather_dummies.index)
+submission_baggingknn_merge = pd.merge(test_weather_dummies, submission_baggingknn, left_index = True, right_index = True)
+submission_baggingknn_final = submission_baggingknn_merge[['Id', 'WnvPresent']]
+
+#DF DT for submission
+submission_dt = pd.DataFrame(test_dt_predict, columns = ['WnvPresent'], index = test_weather_dummies.index)
+submission_dt_merge = pd.merge(test_weather_dummies, submission_dt, left_index = True, right_index = True)
+submission_dt_final = submission_dt_merge[['Id', 'WnvPresent']]
+
+submission_baggingknn_final.to_csv('sub_knn_final.csv', sep = ',', index = False)
+submission_dt_final.to_csv('sub_dt_final.csv', sep = ',', index = False)
+
+test_weather_dummies.info()
+
+X_PCs
