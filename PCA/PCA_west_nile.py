@@ -49,7 +49,7 @@ non_scale = ['Date', 'Address', 'Block', 'Street', 'Trap',
        'spray_2013-08-29', 'spray_2013-09-05', 'Species_CULEX ERRATICUS',
        'Species_CULEX PIPIENS', 'Species_CULEX PIPIENS/RESTUANS',
        'Species_CULEX RESTUANS', 'Species_CULEX SALINARIUS',
-       'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS']
+       'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS', 'spray_ind']
 
 non_scale_use = ['Latitude', 'Longitude',
        'AddressAccuracy', 'spray_2011-08-29',
@@ -58,7 +58,7 @@ non_scale_use = ['Latitude', 'Longitude',
        'spray_2013-08-29', 'spray_2013-09-05', 'Species_CULEX ERRATICUS',
        'Species_CULEX PIPIENS', 'Species_CULEX PIPIENS/RESTUANS',
        'Species_CULEX RESTUANS', 'Species_CULEX SALINARIUS',
-       'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS']
+       'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS', 'spray_ind']
 
 target_wnv = spray_merged['WnvPresent']
 target_nm = spray_merged['NumMosquitos']
@@ -81,6 +81,21 @@ X_merged_no_nm = pd.merge(spray_merged[non_scale_use], X_scaled, left_index = Tr
 X_merged_no_nm.info()
 
 '''Let's start our PCA process.'''
+
+#Separate file - looking to see what PCs are like without spraying...
+no_spray_X = X_merged_no_nm[X_merged_no_nm['spray_ind'] == 0]
+
+cols_no_spray = ['Latitude', 'Longitude', 'AddressAccuracy', 'Species_CULEX ERRATICUS',
+       'Species_CULEX PIPIENS', 'Species_CULEX PIPIENS/RESTUANS',
+       'Species_CULEX RESTUANS', 'Species_CULEX SALINARIUS',
+       'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS',
+       'AvgSpeed', 'Cool', 'Depart', 'DewPoint', 'Heat', 'ResultDir',
+       'ResultSpeed', 'SeaLevel', 'StnPressure', 'Sunrise', 'Sunset',
+       'Tavg', 'Tmax', 'Tmin', 'WetBulb']
+
+X_no_spray = no_spray_X[cols_no_spray]
+
+'''Original PCA with spray data'''
 X_covmat = np.cov(X_merged_no_nm.T)
 
 eig_vals, eig_vecs = np.linalg.eig(X_covmat)
@@ -95,7 +110,17 @@ eigenpairs = pd.DataFrame(eigen_pairs, columns = ['eigenvalue', 'eigenvector'])
 
 eigenpairs.sort_values('eigenvalue', ascending = False)
 
-#Total explained variance
+'''Eigenvalues for PCA without spray data'''
+X_nospray_covmat = np.cov(X_no_spray.T)
+eig_vals2, eig_vecs2 = np.linalg.eig(X_nospray_covmat)
+eigen_pairs2 = [[eig_vals2[i], eig_vecs2[:,i]] for i in range(len(eig_vals2))]
+
+eigenpairs2 = pd.DataFrame(eigen_pairs2, columns = ['eigenvalue', 'eigenvector'])
+
+eigenpairs2.sort_values('eigenvalue', ascending = False)
+
+'''
+#Total explained variance for PCA with spray data'''
 
 #sum all the eigenvalues together.
 totaleig_val = eigenpairs.eigenvalue.sum()
@@ -141,6 +166,56 @@ print "Cumulative variance explained at Component 10:", cum_exp_var[9]
 print "Cumulative variance explained at Component 8:", cum_exp_var[7]
 print "Cumulative variance explained at Component 5:", cum_exp_var[4]
 
+
+
+'''Total Explained Variance for PCA w/o spray data'''
+
+#sum all the eigenvalues together.
+totaleig_val2 = eigenpairs2.eigenvalue.sum()
+print "Total Eigenvalue Sum is:", totaleig_val2
+print '-------------------'
+indiv_var2 = [eigenpairs2.eigenvalue[i]/totaleig_val*100 for i in range(len(eigenpairs2))]
+cum_exp_var2 = np.cumsum(indiv_var2)
+
+print 'Cumulative Variance Explained as we include principal components:', cum_exp_var2
+print "There are %i eigenvalues." % len(eigenpairs2.eigenvalue)
+
+#Plotting Explained Variance
+plt.figure(figsize=(9,7))
+
+component_number = range(1,35)
+
+plt.plot(component_number, cum_exp_var, lw=7)
+
+plt.axhline(y=0, linewidth=5, color='grey', ls='dashed')
+plt.axhline(y=100, linewidth=3, color='grey', ls='dashed')
+plt.axhline(y=95, linewidth = 3, color = 'green', ls = 'dashed')
+plt.axhline(y=90, linewidth = 3, color = 'purple', ls = 'dashed')
+
+ax = plt.gca()
+ax.set_xlim([1,34])
+ax.set_ylim([-5,105])
+
+ax.set_ylabel('cumulative variance explained', fontsize=16)
+ax.set_xlabel('component', fontsize=16)
+
+for tick in ax.xaxis.get_major_ticks():
+    tick.label.set_fontsize(12)
+
+for tick in ax.yaxis.get_major_ticks():
+    tick.label.set_fontsize(12)
+
+ax.set_title('component vs cumulative variance explained\n', fontsize=20)
+
+'''At component 12, we seem to explain most if not all of our variance. 99.56% to be exact.
+At component 7, it looks like we explain 95% of our variance. At component 6, we explain 90% of variance.'''
+
+print "Cumulative variance explained at Component 10:", cum_exp_var2[9]
+print "Cumulative variance explained at Component 8:", cum_exp_var2[7]
+print "Cumulative variance explained at Component 5:", cum_exp_var2[4]
+
+
+
 '''PCA - creating the Principal Components from all numerical features and species inds.
 Since 8 components explain 93% of variance, using that.'''
 
@@ -155,7 +230,7 @@ prin_comps
 
 #Merging with wnv target...
 
-wnv_PCs = pd.merge(spray_merged[['WnvPresent', 'NumMosquitos','Trap']], prin_comps, left_index = True, right_index = True)
+wnv_PCs = pd.merge(spray_merged[['Date', 'WnvPresent', 'NumMosquitos','Trap']], prin_comps, left_index = True, right_index = True)
 
 wnv_PCs.info()
 
@@ -186,6 +261,49 @@ PC3 is wind essentially, and location.
 
 wnv_pca.components_
 
+#Exports PCs with the spray info incorporated.
+
+wnv_PCs.to_csv('train_data_PCA_spraydata.csv', sep = ',', index = True, index_label = 'Index')
+
+'''PCA for the Training Data for sites we know were not sprayed.'''
+wnv_pca_nospray = PCA(n_components = 8)
+X_PCs_nospray = wnv_pca.fit_transform(X_no_spray)
+
+
+#Creating Df of PCs.
+
+prin_comps = pd.DataFrame(X_PCs_nospray, columns = ['PC' + str(i) for i in range(1,9)])
+#['PC_' + str(i) for i in range(1,6)]
+prin_comps
+
+#Merging with wnv target...
+
+wnv_PCs_nospray = pd.merge(spray_merged[['WnvPresent', 'NumMosquitos','Trap']][spray_merged['spray_ind'] == 0], prin_comps, left_index = True, right_index = True)
+
+wnv_PCs_nospray.info()
+
+#Now let's see how our eight PCs related back to our original features...
+
+prin_comps_features = pd.merge(prin_comps, X_no_spray, left_index = True, right_index = True)
+
+corr_prin_comps = prin_comps_features.corr().drop(['PC1', 'PC2', 'PC3', 'PC4', 'PC5', 'PC6', 'PC7', 'PC8'], axis = 0)
+
+cols_drop = ['Latitude', 'Longitude', 'AddressAccuracy', 'Species_CULEX ERRATICUS',
+       'Species_CULEX PIPIENS', 'Species_CULEX PIPIENS/RESTUANS',
+       'Species_CULEX RESTUANS', 'Species_CULEX SALINARIUS',
+       'Species_CULEX TARSALIS', 'Species_CULEX TERRITANS', 'AvgSpeed',
+       'Cool', 'Depart', 'DewPoint', 'Heat', 'ResultDir',
+       'ResultSpeed', 'SeaLevel', 'StnPressure', 'Sunrise',
+       'Sunset', 'Tavg', 'Tmax', 'Tmin', 'WetBulb']
+
+corr_prin_comps.drop(cols_drop, axis = 1, inplace = True)
+corr_prin_comps
+
+'''Testing the PCs on predicting number of mosquitos...'''
+
+target_nm = wnv_PCs_nospray['NumMosquitos']
+
+X_nm = wnv_PCs_nospray[['PC1', 'PC2', 'PC3', 'PC4', 'PC5','PC6','PC7','PC8']]
 
 #Now that we have the PCs...
 
@@ -565,3 +683,5 @@ non_scale_use_test = ['Latitude', 'Longitude',
 
 '''Merge the scaled data and ind vars...keeping num mosquitos out of this...'''
 test_merged_no_nm = pd.merge(test_weather_dummies[non_scale_use_test], test_scaled, left_index = True, right_index = True)
+
+wnv_PCs.info()
