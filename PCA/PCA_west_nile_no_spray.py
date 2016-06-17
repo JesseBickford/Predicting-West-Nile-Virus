@@ -572,14 +572,28 @@ test_merged_no_nm.info()
 test_PCs = wnv_pca.fit_transform(test_merged_no_nm)
 
 test_PCs
-
+#BaggingKnn prediction
 test_baggingknn_predict = baggingknn.predict(test_PCs)
 
+#Decision Tree Classifier
 test_dt_predict = dt.predict(test_PCs)
 
-sum(test_baggingknn_predict)
+#RF Classifier
+test_rf_predict = rf.predict(test_PCs)
 
+#gsrf
+
+test_gsrf_predict = gsrf.predict(test_PCs)
+
+#gsbaggingknn
+test_gsbaggingknn_predict = gsbaggingknn.predict(test_PCs)
+
+#Checking to see, based on sum, how many 1s predicted.
+sum(test_baggingknn_predict)
 sum(test_dt_predict)
+sum(test_rf_predict)
+sum(test_gsrf_predict) #predicts 0, not using...
+sum(test_gsbaggingknn_predict)
 
 #DF for submission.
 submission_baggingknn = pd.DataFrame(test_baggingknn_predict, columns = ['WnvPresent'], index = test_weather_dummies.index)
@@ -591,9 +605,12 @@ submission_dt = pd.DataFrame(test_dt_predict, columns = ['WnvPresent'], index = 
 submission_dt_merge = pd.merge(test_weather_dummies, submission_dt, left_index = True, right_index = True)
 submission_dt_final = submission_dt_merge[['Id', 'WnvPresent']]
 
+#RF DT for submission
+submission_rf = pd.DataFrame(test_rf_predict, columns = ['WnvPresent'], index = test_weather_dummies.index)
+submission_rf_merge = pd.merge(test_weather_dummies, submission_rf, left_index = True, right_index = True)
+submission_rf_final = submission_rf_merge[['Id', 'WnvPresent']]
+
+
 submission_baggingknn_final.to_csv('sub_knn_final.csv', sep = ',', index = False)
 submission_dt_final.to_csv('sub_dt_final.csv', sep = ',', index = False)
-
-test_weather_dummies.info()
-
-X_PCs
+submission_rf_final.to_csv('sub_rf_final.csv', sep = ',', index = False)
