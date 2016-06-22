@@ -6,6 +6,9 @@ from keras.utils import np_utils
 from sklearn import metrics
 from sklearn.cross_validation import KFold
 
+''' This script builds a neural network, trains it on our training data, and
+ generates predicted probabilites for our test set in the required submission
+ format for Kaggle'''
 
 def build_model(input_dim, output_dim):
     model = Sequential()

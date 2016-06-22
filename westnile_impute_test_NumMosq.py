@@ -1,5 +1,8 @@
 import pandas as pd
 
+''' This script imputes the NumMosquitos for all rows in the test set using
+ values generated from our training set '''
+
 # Read in our train and test sets
 train = pd.read_csv('/Users/Brian/Predicting-West-Nile-Virus/assets/train.csv')
 test = pd.read_csv('/Users/Brian/Predicting-West-Nile-Virus/assets/test.csv')

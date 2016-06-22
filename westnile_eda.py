@@ -2,9 +2,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+''' This script performs some exploratory data analysis and creates some graphs
+ to help visualize the data we are going to work with '''
+
 # Read in our dataset
 df = pd.read_csv('/Users/Brian/Downloads/west_nile/input/train.csv')
-
+df
 # Look at the head and tail
 print df.head()
 print df.tail()

@@ -3,7 +3,10 @@ import numpy as np
 from math import radians, cos, sin, asin, sqrt
 
 '''This script adds the spray dummy columns to the Test set from the values
-    we computed on the Train set'''
+    we computed on the Train set
+    
+   Author: Brian Carothers
+'''
 
 # Read in our datasets
 train = pd.read_csv('/Users/Brian/spray_0.75_clean.csv')

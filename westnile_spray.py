@@ -1,6 +1,10 @@
 import pandas as pd
 from math import radians, cos, sin, asin, sqrt
 
+''' This script computes the distance between all traps and spray locations
+ and creates dummy variables to signal if the trap was within a specified
+ distance of a spray on each date '''
+
 spray = pd.read_csv('/Users/Brian/Predicting-West-Nile-Virus/assets/spray.csv')
 
 train = pd.read_csv('/Users/Brian/Predicting-West-Nile-Virus/assets/train.csv')
@@ -22,7 +26,7 @@ def haversine(lon1, lat1, lon2, lat2):
 # that spraying occured) if the trap is within a certain distance of spraying
 # We aren't sure which radius we want to use for our distance, so we test a
 # couple different values
-for dist in [.5,1,3]:
+for dist in [.25,.75]:
     print 'Starting distance',str(dist)
     # Create a DataFrame for this distance
     this_train = train
@@ -70,6 +74,8 @@ for dist in [.5,1,3]:
 spray_half = pd.read_csv('/Users/Brian/spray_0.5.csv')
 spray_one = pd.read_csv('/Users/Brian/spray_1.csv')
 spray_three = pd.read_csv('/Users/Brian/spray_3.csv')
+spray_quarter = pd.read_csv('/Users/Brian/Predicting-West-Nile-Virus/spray_0.25.csv')
+spray_3quarter = pd.read_csv('/Users/Brian/Predicting-West-Nile-Virus/spray_0.75.csv')
 
 # The spray that occured on 8/15/13 started in the evening and continued past
 # midnight into 8/16/13. Since this is part of the same spray, having two
@@ -77,8 +83,8 @@ spray_three = pd.read_csv('/Users/Brian/spray_3.csv')
 # We want to set the element in the 8/15/13 spray equal to 1 if there was a
 # spray within the distance on either 8/15 or 8/16
 
-# Iterate through our 3 DataFrames
-for df in [spray_half,spray_one,spray_three]:
+# Iterate through our 5 DataFrames
+for df in [spray_half,spray_one,spray_three,spray_quarter,spray_3quarter]:
     # Iterate through the rows of the DataFrame
     for index, row in df.iterrows():
         # We only need to update the 8/15 column if it isn't already = 1
@@ -94,3 +100,5 @@ for df in [spray_half,spray_one,spray_three]:
 spray_half.to_csv('spray_0.5_clean.csv')
 spray_one.to_csv('spray_1_clean.csv')
 spray_three.to_csv('spray_3_clean.csv')
+spray_quarter.to_csv('spray_0.25_clean.csv')
+spray_3quarter.to_csv('spray_0.75_clean.csv')
